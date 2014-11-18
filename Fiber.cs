@@ -6,9 +6,15 @@ using System.Threading.Tasks;
 
 namespace Mantra
 {
-	class Fiber
+	public class Fiber : IReceiver
 	{
+		public int Name { get; set; }
 		public Term Head { get; set; }
+
+		public Fiber(string name)
+		{
+			Name = name.GetHashCode();
+		}
 
 		public enum Status
 		{
@@ -88,8 +94,16 @@ namespace Mantra
 			Term result = null;
 			if (rule.hardCoded != null)
 			{
-				result = rule.hardCoded(primary.next);
 				numConsumed = rule.nArgs;
+				for (int i = 0; i < numConsumed; ++i)
+				{
+					if (after == null)
+					{
+						return Status.Blocking;
+					}
+					after = after.next;
+				}
+				result = rule.hardCoded(primary.next);
 			}
 			else
 			{
@@ -99,14 +113,10 @@ namespace Mantra
 				{
 					return Status.Blocking;
 				}
-			}
-			for (int i = 0; i < numConsumed; ++i)
-			{
-				if (after == null)
+				for (int i = 0; i < numConsumed; ++i)
 				{
-					return Status.Blocking;
+					after = after.next;
 				}
-				after = after.next;
 			}
 
 			Insert(before, result, after);
@@ -166,9 +176,10 @@ namespace Mantra
 
 		private Status Match(Dictionary<int, Term> toMatch, Term pattern, Term arguments, ref int numConsumed)
 		{
+			if (pattern is LiteralTerm && (pattern as LiteralTerm).name == "..".GetHashCode()) return Status.Active;
 			if (pattern == null) return Status.Active;
 			if (arguments == null) return Status.Blocking;
-			if (pattern is LiteralTerm)
+			if (pattern is LiteralTerm && (pattern as LiteralTerm).name != "_".GetHashCode())
 			{
 				toMatch.Add((pattern as LiteralTerm).name, arguments);
 			}
@@ -178,17 +189,40 @@ namespace Mantra
 				int i = 0;
 				var list = pattern as ListTerm;
 				if (list.head != null &&
-					list.head.Count == 3 &&
-					list.head.next is LiteralTerm &&
-					(list.head.next as LiteralTerm).name == "..".GetHashCode())
+					list.head.Count >= 3)
 				{
-					if (Match(toMatch, list.head.CopySingle(), (arguments as ListTerm).head, ref i) == Status.Blocking)
+					LiteralTerm butLast = null;
+					LiteralTerm last = null;
+					int numTaken = 0;
+					for (Term it = list.head; it != null; it = it.next)
 					{
-						return Status.Blocking;
+						butLast = last;
+						last = it as LiteralTerm;
+						numTaken += 1;
 					}
-					toMatch.Add((list.head.next.next as LiteralTerm).name, new ListTerm((arguments as ListTerm).head.next, null));
-					numConsumed += 1;
-					return Match(toMatch, pattern.next, arguments.next, ref numConsumed);
+					numTaken -= 2;
+					if (butLast.name == "..".GetHashCode())
+					{
+						if (Match(toMatch, list.head, (arguments as ListTerm).head, ref i) == Status.Blocking)
+						{
+							return Status.Blocking;
+						}
+						Term tail = (arguments as ListTerm).head;
+						for (int j = 0; j < numTaken; ++j)
+						{
+							tail = tail.next;
+						}
+						if (tail == null)
+						{
+							toMatch.Add(last.name, new ListTerm(null, null));
+						}
+						else
+						{
+							toMatch.Add(last.name, new ListTerm(tail.CopyChain(), null));
+						}
+						numConsumed += 1;
+						return Match(toMatch, pattern.next, arguments.next, ref numConsumed);
+					}
 				}
 				if ((pattern as ListTerm).head == null && (arguments as ListTerm).head == null)
 				{

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Mantra
 {
-	class Parser
+	public class Parser
 	{
 		private int i;
 

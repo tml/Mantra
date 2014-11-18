@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Mantra
 {
-	abstract class Term
+	public abstract class Term
 	{
 		public Term next;
 
@@ -56,7 +56,7 @@ namespace Mantra
 		}
 	}
 
-	class ListTerm : Term
+	public class ListTerm : Term
 	{
 		public Term head;
 
@@ -88,7 +88,7 @@ namespace Mantra
 		}
 	}
 
-	class NumberTerm : Term
+	public class NumberTerm : Term
 	{
 		public double number;
 
@@ -106,6 +106,7 @@ namespace Mantra
 		public override bool Equals(object obj)
 		{
 			NumberTerm o = obj as NumberTerm;
+			if (o == null) return false;
 			return o.number == number;
 		}
 
@@ -115,7 +116,7 @@ namespace Mantra
 		}
 	}
 
-	class LiteralTerm : Term
+	public class LiteralTerm : Term
 	{
 		public int name;
 
@@ -142,6 +143,7 @@ namespace Mantra
 		public override bool Equals(object obj)
 		{
 			LiteralTerm o = obj as LiteralTerm;
+			if (o == null) return false;
 			return o.name == name;
 		}
 

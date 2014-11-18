@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace Mantra
 {
-	class RuleSet
+	public class RuleSet
 	{
 		private Dictionary<int, Rule> rules = new Dictionary<int, Rule>();
 
-		public RuleSet()
+		public RuleSet(ReceiverPool pool)
 		{
 			Register(new Rule("+".GetHashCode(), 2, t =>
 			{
@@ -112,13 +112,11 @@ namespace Mantra
 				ListTerm right = t.next as ListTerm;
 				if (left.head == null)
 				{
-					right.next = null;
-					return right;
+					return right.CopySingle();
 				}
 				else if (right.head == null)
 				{
-					left.next = null;
-					return left;
+					return left.CopySingle();
 				}
 				Term last = null;
 				for (Term it = left.head; it != null; it = it.next)
@@ -126,26 +124,36 @@ namespace Mantra
 					last = it;
 				}
 				last.next = right.head;
-				left.next = null;
-				return left;
-			}));
-			Register(new Rule("head".GetHashCode(), 1, t =>
-			{
-				ListTerm list = t as ListTerm;
-				if (list.head == null)
-				{
-					return new ListTerm(null, list.next);
-				}
-				Term tail = list.head.next;
-				Term head = list.head;
-				list.head = tail;
-				head.next = list.CopySingle();
-				return head;
+				return new ListTerm(left.head, null);
 			}));
 			Register(new Rule("unquote".GetHashCode(), 1, t =>
 			{
 				ListTerm list = t as ListTerm;
 				return list.head;
+			}));
+			Register(new Rule("cons".GetHashCode(), 2, t =>
+			{
+				Term a = t.CopySingle();
+				ListTerm list = t.next as ListTerm;
+				a.next = list.head;
+				return new ListTerm(a, null);
+			}));
+			Register(new Rule("pass".GetHashCode(), 2, t =>
+			{
+				ListTerm name = t.CopySingle() as ListTerm;
+				ListTerm message = t.next.CopySingle() as ListTerm;
+				pool.Send((name.head as LiteralTerm).name, message.head);
+				return null;
+			}));
+			Register(new Rule("trace".GetHashCode(), 1, t =>
+			{
+				Console.WriteLine(t);
+				return null;
+			}));
+			Register(new Rule("showFiber".GetHashCode(), 1, t =>
+			{
+				ListTerm name = t.CopySingle() as ListTerm;
+				return new ListTerm((pool.Receiver[(name.head as LiteralTerm).name] as Fiber).Head.CopyChain(), null);
 			}));
 		}
 

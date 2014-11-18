@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Mantra
 {
-	class Rule
+	public class Rule
 	{
 		public readonly int name;
 		public readonly Func<Term, Term> hardCoded;
