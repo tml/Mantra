@@ -15,6 +15,7 @@ namespace Mantra
 		{
 			Fiber repl = new Fiber();
 			RuleSet rules = new RuleSet();
+			new Parser().ParseFile(File.ReadAllText("prelude.tra"), rules);
 
 			while (true)
 			{
@@ -22,11 +23,22 @@ namespace Mantra
 				string input = Console.ReadLine();
 				if (input.Length > "load ".Length && input.Substring(0, "load ".Length) == "load ")
 				{
-					new Parser().ParseFile(File.ReadAllText(input.Substring("load ".Length)), rules);
+					try
+					{
+						new Parser().ParseFile(File.ReadAllText(input.Substring("load ".Length)), rules);
+					}
+					catch
+					{
+						Console.WriteLine("Can't load that file.");
+						continue;
+					}
 				}
 				repl.Head = new Parser().ParseExpression(input);
-				repl.Evaluate(rules);
-				Console.WriteLine(repl.Head);
+				while (repl.PerformStep(rules) == Fiber.Status.Active)
+				{
+					Console.WriteLine(repl.Head);
+				}
+				Console.WriteLine();
 			}
 		}
 	}
