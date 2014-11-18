@@ -14,6 +14,15 @@ namespace Mantra
 		{
 			while (i < text.Length)
 			{
+				if (text[i] == '#')
+				{
+					while (i < text.Length && text[i] != '\n')
+					{
+						i += 1;
+					}
+					SkipWhitespace(text);
+					continue;
+				}
 				ParseDeclaration(text, rules);
 			}
 		}
@@ -41,6 +50,11 @@ namespace Mantra
 			}
 
 			int last = text.IndexOf(';', i);
+			if (last == -1)
+			{
+				Console.WriteLine("Missing semicolon for rule '" + name.name + "'.");
+				return;
+			}
 			Term bodyHead = new Parser().ParseExpression(text.Substring(i, last - i));
 			i = last + 1;
 			SkipWhitespace(text);
