@@ -83,14 +83,7 @@ namespace Mantra
 			}
 
 			Term after = primary.next;
-			for (int i = 0; i < rule.nArgs; ++i)
-			{
-				if (after == null)
-				{
-					return Status.Blocking;
-				}
-				after = after.next;
-			}
+			int numConsumed = rule.nArgs;
 
 			Term result = null;
 			if (rule.hardCoded != null)
@@ -100,14 +93,22 @@ namespace Mantra
 			else
 			{
 				Status error;
-				result = DoRule(rule, primary.next, out error);
+				result = DoRule(rule, primary.next, out error, ref numConsumed);
+			}
+			for (int i = 0; i < numConsumed; ++i)
+			{
+				if (after == null)
+				{
+					return Status.Blocking;
+				}
+				after = after.next;
 			}
 
 			Insert(before, result, after);
 			return Status.Active;
 		}
 
-		private Term DoRule(Rule rule, Term arguments, out Status error)
+		private Term DoRule(Rule rule, Term arguments, out Status error, ref int numConsumed)
 		{
 			if (rule.patternHeads.Count == 0)
 			{
@@ -119,7 +120,7 @@ namespace Mantra
 				var pattern = tuple.Item1;
 				var body = tuple.Item2;
 				Dictionary<int, Term> matches = new Dictionary<int, Term>();
-				error = Match(matches, pattern, arguments);
+				error = Match(matches, pattern, arguments, ref numConsumed);
 				if (error == Status.Blocking)
 				{
 					continue;
@@ -157,7 +158,7 @@ namespace Mantra
 			return term;
 		}
 
-		private Status Match(Dictionary<int, Term> toMatch, Term pattern, Term arguments)
+		private Status Match(Dictionary<int, Term> toMatch, Term pattern, Term arguments, ref int numConsumed)
 		{
 			if (pattern == null) return Status.Active;
 			if (arguments == null) return Status.Blocking;
@@ -169,7 +170,8 @@ namespace Mantra
 			{
 				if (!(arguments is ListTerm)) return Status.Blocking;
 				if ((pattern as ListTerm).head.Count != (arguments as ListTerm).head.Count) return Status.Blocking;
-				if (Match(toMatch, (pattern as ListTerm).head, (arguments as ListTerm).head) == Status.Blocking) return Status.Blocking;
+				int i = 0;
+				if (Match(toMatch, (pattern as ListTerm).head, (arguments as ListTerm).head, ref i) == Status.Blocking) return Status.Blocking;
 			}
 			else if (pattern is NumberTerm)
 			{
@@ -178,7 +180,8 @@ namespace Mantra
 					return Status.Blocking;
 				}
 			}
-			return Match(toMatch, pattern.next, arguments.next);
+			numConsumed += 1;
+			return Match(toMatch, pattern.next, arguments.next, ref numConsumed);
 		}
 
 		public void Receive(Term term)

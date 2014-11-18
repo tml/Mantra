@@ -21,12 +21,11 @@ namespace Mantra
 			this.nArgs = nArgs;
 		}
 
-		public Rule(int name, int nArgs)
+		public Rule(int name)
 		{
 			this.name = name;
 			this.bodyHeads = new List<Term>();
 			this.patternHeads = new List<Term>();
-			this.nArgs = nArgs;
 		}
 	}
 }

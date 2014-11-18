@@ -62,13 +62,8 @@ namespace Mantra
 			Rule rule = rules.Get(name.name);
 			if (rule == null)
 			{
-				rule = new Rule(name.name, patternHead.Count);
+				rule = new Rule(name.name);
 				rules.Register(rule);
-			}
-			if (rule.nArgs != patternHead.Count)
-			{
-				Console.WriteLine("The patterns for '" + name.name + "' are of different arity.");
-				return;
 			}
 			rule.patternHeads.Add(patternHead);
 			rule.bodyHeads.Add(bodyHead);
