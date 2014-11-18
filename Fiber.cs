@@ -95,6 +95,10 @@ namespace Mantra
 			{
 				Status error;
 				result = DoRule(rule, primary.next, out error, ref numConsumed);
+				if (error == Status.Blocking)
+				{
+					return Status.Blocking;
+				}
 			}
 			for (int i = 0; i < numConsumed; ++i)
 			{
@@ -170,13 +174,13 @@ namespace Mantra
 			}
 			else if (pattern is ListTerm)
 			{
+				if (!(arguments is ListTerm)) return Status.Blocking;
 				int i = 0;
 				var list = pattern as ListTerm;
 				if (list.head != null &&
 					list.head.Count == 3 &&
 					list.head.next is LiteralTerm &&
-					(list.head.next as LiteralTerm).name == "..".GetHashCode() &&
-					arguments is ListTerm)
+					(list.head.next as LiteralTerm).name == "..".GetHashCode())
 				{
 					if (Match(toMatch, list.head.CopySingle(), (arguments as ListTerm).head, ref i) == Status.Blocking)
 					{
@@ -186,7 +190,6 @@ namespace Mantra
 					numConsumed += 1;
 					return Match(toMatch, pattern.next, arguments.next, ref numConsumed);
 				}
-				if (!(arguments is ListTerm)) return Status.Blocking;
 				if ((pattern as ListTerm).head == null && (arguments as ListTerm).head == null)
 				{
 					numConsumed += 1;
@@ -196,12 +199,10 @@ namespace Mantra
 				if ((pattern as ListTerm).head.Count != (arguments as ListTerm).head.Count) return Status.Blocking;
 				if (Match(toMatch, (pattern as ListTerm).head, (arguments as ListTerm).head, ref i) == Status.Blocking) return Status.Blocking;
 			}
-			else if (pattern is NumberTerm)
+			else if (pattern is NumberTerm &&
+				(pattern as NumberTerm).number != (arguments as NumberTerm).number)
 			{
-				if ((pattern as NumberTerm).number != (arguments as NumberTerm).number)
-				{
-					return Status.Blocking;
-				}
+				return Status.Blocking;
 			}
 			numConsumed += 1;
 			return Match(toMatch, pattern.next, arguments.next, ref numConsumed);
