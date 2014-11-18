@@ -139,8 +139,7 @@ namespace Mantra
 				Term tail = list.head.next;
 				Term head = list.head;
 				list.head = tail;
-				head.next = list;
-				list.next = null;
+				head.next = list.CopySingle();
 				return head;
 			}));
 			Register(new Rule("unquote".GetHashCode(), 1, t =>

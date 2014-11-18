@@ -80,6 +80,10 @@ namespace Mantra
 
 		public override Term CopySingle()
 		{
+			if (head == null)
+			{
+				return new ListTerm(null, null);
+			}
 			return new ListTerm(head.CopyChain(), null);
 		}
 	}

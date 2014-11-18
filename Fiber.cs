@@ -83,12 +83,13 @@ namespace Mantra
 			}
 
 			Term after = primary.next;
-			int numConsumed = rule.nArgs;
+			int numConsumed = 0;
 
 			Term result = null;
 			if (rule.hardCoded != null)
 			{
 				result = rule.hardCoded(primary.next);
+				numConsumed = rule.nArgs;
 			}
 			else
 			{
@@ -120,6 +121,7 @@ namespace Mantra
 				var pattern = tuple.Item1;
 				var body = tuple.Item2;
 				Dictionary<int, Term> matches = new Dictionary<int, Term>();
+				numConsumed = 0;
 				error = Match(matches, pattern, arguments, ref numConsumed);
 				if (error == Status.Blocking)
 				{
@@ -169,6 +171,12 @@ namespace Mantra
 			else if (pattern is ListTerm)
 			{
 				if (!(arguments is ListTerm)) return Status.Blocking;
+				if ((pattern as ListTerm).head == null && (arguments as ListTerm).head == null)
+				{
+					numConsumed += 1;
+					return Match(toMatch, pattern.next, arguments.next, ref numConsumed);
+				}
+				if ((pattern as ListTerm).head == null || (arguments as ListTerm).head == null) return Status.Blocking;
 				if ((pattern as ListTerm).head.Count != (arguments as ListTerm).head.Count) return Status.Blocking;
 				int i = 0;
 				if (Match(toMatch, (pattern as ListTerm).head, (arguments as ListTerm).head, ref i) == Status.Blocking) return Status.Blocking;
