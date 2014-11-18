@@ -124,6 +124,10 @@ namespace Mantra
 				{
 					continue;
 				}
+				if (body == null)
+				{
+					return null;
+				}
 				return Rewrite(body.CopyChain(), matches);
 			}
 			error = Status.Blocking;
@@ -164,7 +168,8 @@ namespace Mantra
 			else if (pattern is ListTerm)
 			{
 				if (!(arguments is ListTerm)) return Status.Blocking;
-				Match(toMatch, (pattern as ListTerm).head, (arguments as ListTerm).head);
+				if ((pattern as ListTerm).head.Count != (arguments as ListTerm).head.Count) return Status.Blocking;
+				if (Match(toMatch, (pattern as ListTerm).head, (arguments as ListTerm).head) == Status.Blocking) return Status.Blocking;
 			}
 			else if (pattern is NumberTerm)
 			{
