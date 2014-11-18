@@ -170,6 +170,22 @@ namespace Mantra
 			}
 			else if (pattern is ListTerm)
 			{
+				int i = 0;
+				var list = pattern as ListTerm;
+				if (list.head != null &&
+					list.head.Count == 3 &&
+					list.head.next is LiteralTerm &&
+					(list.head.next as LiteralTerm).name == "..".GetHashCode() &&
+					arguments is ListTerm)
+				{
+					if (Match(toMatch, list.head.CopySingle(), (arguments as ListTerm).head, ref i) == Status.Blocking)
+					{
+						return Status.Blocking;
+					}
+					toMatch.Add((list.head.next.next as LiteralTerm).name, new ListTerm((arguments as ListTerm).head.next, null));
+					numConsumed += 1;
+					return Match(toMatch, pattern.next, arguments.next, ref numConsumed);
+				}
 				if (!(arguments is ListTerm)) return Status.Blocking;
 				if ((pattern as ListTerm).head == null && (arguments as ListTerm).head == null)
 				{
@@ -178,7 +194,6 @@ namespace Mantra
 				}
 				if ((pattern as ListTerm).head == null || (arguments as ListTerm).head == null) return Status.Blocking;
 				if ((pattern as ListTerm).head.Count != (arguments as ListTerm).head.Count) return Status.Blocking;
-				int i = 0;
 				if (Match(toMatch, (pattern as ListTerm).head, (arguments as ListTerm).head, ref i) == Status.Blocking) return Status.Blocking;
 			}
 			else if (pattern is NumberTerm)
