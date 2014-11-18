@@ -129,27 +129,6 @@ namespace Mantra
 				left.next = null;
 				return left;
 			}));
-			Register(new Rule("copy".GetHashCode(), 1, t =>
-			{
-				t.next = t.CopySingle();
-				return t;
-			}));
-			Register(new Rule("choose".GetHashCode(), 3, t =>
-			{
-				ListTerm ifEmpty = t as ListTerm;
-				ListTerm ifNonEmpty = t.next as ListTerm;
-				ListTerm condition = t.next.next as ListTerm;
-				if (condition == null || condition.head != null)
-				{
-					ifNonEmpty.next = null;
-					return ifNonEmpty;
-				}
-				else
-				{
-					ifEmpty.next = null;
-					return ifEmpty;
-				}
-			}));
 			Register(new Rule("head".GetHashCode(), 1, t =>
 			{
 				ListTerm list = t as ListTerm;
