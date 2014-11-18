@@ -153,10 +153,15 @@ namespace Mantra
 			Register(new Rule("head".GetHashCode(), 1, t =>
 			{
 				ListTerm list = t as ListTerm;
+				if (list.head == null)
+				{
+					return new ListTerm(null, list.next);
+				}
 				Term tail = list.head.next;
 				Term head = list.head;
 				list.head = tail;
 				head.next = list;
+				list.next = null;
 				return head;
 			}));
 			Register(new Rule("unquote".GetHashCode(), 1, t =>
