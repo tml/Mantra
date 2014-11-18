@@ -38,21 +38,29 @@ namespace Mantra
 
 			Term patternHead = ParseTerm(text);
 			Term current = patternHead;
-			while (i < text.Length)
+			if (patternHead is LiteralTerm && (patternHead as LiteralTerm).name == "=>".GetHashCode())
 			{
-				current.next = ParseTerm(text);
-				if (current.next is LiteralTerm && (current.next as LiteralTerm).name == "=>".GetHashCode())
+				patternHead = null;
+				current = null;
+			}
+			else
+			{
+				while (i < text.Length)
 				{
-					current.next = null;
-					break;
+					current.next = ParseTerm(text);
+					if (current.next is LiteralTerm && (current.next as LiteralTerm).name == "=>".GetHashCode())
+					{
+						current.next = null;
+						break;
+					}
+					current = current.next;
 				}
-				current = current.next;
 			}
 
 			int last = text.IndexOf(';', i);
 			if (last == -1)
 			{
-				Console.WriteLine("Missing semicolon for rule '" + name.name + "'.");
+				Console.WriteLine("Missing semicolon for rule '" + Program.literalDictionary[name.name] + "'.");
 				return;
 			}
 			Term bodyHead = new Parser().ParseExpression(text.Substring(i, last - i));
