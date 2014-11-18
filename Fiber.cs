@@ -175,5 +175,22 @@ namespace Mantra
 			}
 			return Match(toMatch, pattern.next, arguments.next);
 		}
+
+		public void Receive(Term term)
+		{
+			Term last = null;
+			for (Term it = Head; it != null; it = it.next)
+			{
+				last = it;
+			}
+			if (last == null)
+			{
+				Head = term;
+			}
+			else
+			{
+				last.next = term;
+			}
+		}
 	}
 }
