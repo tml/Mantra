@@ -1,0 +1,7 @@
+*.depend
+*.layout
+bin/*
+obj/*
+Properties/*
+App.config
+Mantra.csproj
