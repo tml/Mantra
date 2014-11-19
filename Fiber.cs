@@ -71,6 +71,9 @@ namespace Mantra
 		public void Evaluate(RuleSet rules)
 		{
 			while (PerformStep(rules) == Status.Active) ;
+			Term it;
+			for (it = Head; it != null && !(it is LiteralTerm); it = it.next) ;
+			Head = it;
 		}
 
 		public Status PerformStep(RuleSet rules)
