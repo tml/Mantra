@@ -68,7 +68,14 @@ namespace Mantra
 
 		public override string ToString()
 		{
-			return "(" + head + ") " + next;
+			if (next == null)
+			{
+				return "(" + head + ")";
+			}
+			else
+			{
+				return "(" + head + ") " + next;
+			}
 		}
 
 		public override bool Equals(object obj)
@@ -100,7 +107,14 @@ namespace Mantra
 
 		public override string ToString()
 		{
-			return number + " " + next;
+			if (next == null)
+			{
+				return number.ToString();
+			}
+			else
+			{
+				return number + " " + next;
+			}
 		}
 
 		public override bool Equals(object obj)
@@ -132,11 +146,25 @@ namespace Mantra
 		{
 			if (Program.literalDictionary.ContainsKey(name))
 			{
-				return Program.literalDictionary[name] + " " + next;
+				if (next == null)
+				{
+					return Program.literalDictionary[name];
+				}
+				else
+				{
+					return Program.literalDictionary[name] + " " + next;
+				}
 			}
 			else
 			{
-				return "<noname> " + next;
+				if (next == null)
+				{
+					return "<noname>";
+				}
+				else
+				{
+					return "<noname> " + next;
+				}
 			}
 		}
 
