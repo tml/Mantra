@@ -71,7 +71,7 @@ namespace Mantra
 				{
 					Assembly assembly = Assembly.LoadFile(path);
 					Type extension = assembly.GetType("Mandala.Extension");
-					extension.GetMethod("Extend").Invoke(Activator.CreateInstance(extension), new object[] { pool, rules });
+					extension.GetMethod("Extend").Invoke(Activator.CreateInstance(extension), new object[] { pool, rules, true });
 				}
 				catch
 				{
