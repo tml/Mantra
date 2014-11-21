@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,6 +11,7 @@ namespace Mantra
 	{
 		public int Name { get; set; }
 		public Term Head { get; set; }
+		private ConcurrentQueue<Term> messages = new ConcurrentQueue<Term>();
 
 		public Fiber(string name)
 		{
@@ -20,6 +22,42 @@ namespace Mantra
 		{
 			Active,
 			Blocking
+		}
+
+		public void Receive(Term term)
+		{
+			messages.Enqueue(term);
+		}
+
+		private void FlushReceivedMessages()
+		{
+			int n = messages.Count;
+			for (int i = 0; i < n; ++i)
+			{
+				Term message;
+				messages.TryDequeue(out message);
+				if (message != null)
+				{
+					AppendMessage(message);
+				}
+			}
+		}
+
+		private void AppendMessage(Term message)
+		{
+			Term last = null;
+			for (Term it = Head; it != null; it = it.next)
+			{
+				last = it;
+			}
+			if (last == null)
+			{
+				Head = message;
+			}
+			else
+			{
+				last.next = message;
+			}
 		}
 
 		private LiteralTerm LastLiteral(out Term before)
@@ -70,6 +108,7 @@ namespace Mantra
 
 		public void Evaluate(RuleSet rules)
 		{
+			FlushReceivedMessages();
 			while (PerformStep(rules) == Status.Active) ;
 			Term it;
 			for (it = Head; it != null && !(it is LiteralTerm); it = it.next) ;
@@ -243,23 +282,6 @@ namespace Mantra
 			}
 			numConsumed += 1;
 			return Match(toMatch, pattern.next, arguments.next, ref numConsumed);
-		}
-
-		public void Receive(Term term)
-		{
-			Term last = null;
-			for (Term it = Head; it != null; it = it.next)
-			{
-				last = it;
-			}
-			if (last == null)
-			{
-				Head = term;
-			}
-			else
-			{
-				last.next = term;
-			}
 		}
 	}
 }
