@@ -12,6 +12,7 @@ namespace Mantra
 	class Program
 	{
 		public static Dictionary<int, string> literalDictionary = new Dictionary<int, string>();
+		private static bool steps = false;
 
 		static void Main(string[] args)
 		{
@@ -29,10 +30,18 @@ namespace Mantra
 					Command(input.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries), pool, rules);
 				}
 				repl.Head = new Parser().ParseExpression(input);
-				do
+				if (steps)
 				{
+					do
+					{
+						Console.WriteLine(repl.Head);
+					} while (repl.PerformStep(rules) == Fiber.Status.Active);
+				}
+				else
+				{
+					repl.Evaluate(rules, false);
 					Console.WriteLine(repl.Head);
-				} while (repl.PerformStep(rules) == Fiber.Status.Active);
+				}
 				Console.WriteLine();
 			}
 		}
@@ -60,6 +69,10 @@ namespace Mantra
 				{
 					LoadExtension(p[1] + ".dll", pool, rules);
 				}
+			}
+			else if (p[0] == "#steps")
+			{
+				steps = !steps;
 			}
 		}
 
