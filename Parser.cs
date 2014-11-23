@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,27 +11,29 @@ namespace Mantra
 	{
 		private int i;
 
-		public void ParseFile(string text, RuleSet rules)
+		public void ParseFile(string path, RuleSet rules)
 		{
+			string text = File.ReadAllText(path);
 			SkipWhitespace(text);
 			string version = ParseWord(text);
 			if (version != "version")
 			{
-				Console.WriteLine("This file doesn't start with version. It should start with \"version 0\" to support this compiler.");
+				Console.WriteLine("This file doesn't start with version. It should start with \"version 0\" to support this compiler (" + path + ").");
 				return;
 			}
 			string number = ParseWord(text);
 			int versionValue;
 			if (!int.TryParse(number, out versionValue))
 			{
-				Console.WriteLine("The version number at the start of the file isn't formatted as a number.");
+				Console.WriteLine("The version number at the start of the file isn't formatted as a number (" + path + ").");
 				return;
 			}
 			if (versionValue != 0)
 			{
-				Console.WriteLine("The version of this file is " + versionValue + ", but this compiler only supports major version zero.");
+				Console.WriteLine("The version of this file is " + versionValue + ", but this compiler only supports major version zero (" + path + ").");
 				return;
 			}
+			Module module = new Module(Path.GetDirectoryName(path));
 			while (i < text.Length)
 			{
 				if (text[i] == '#')
@@ -42,11 +45,12 @@ namespace Mantra
 					SkipWhitespace(text);
 					continue;
 				}
-				ParseDeclaration(text, rules);
+				ParseDeclaration(text, module);
 			}
+			rules.Register(module);
 		}
 
-		public void ParseDeclaration(string text, RuleSet rules)
+		public void ParseDeclaration(string text, Module module)
 		{
 			Term term = ParseLiteral(text);
 			if (term is NumberTerm)
@@ -86,11 +90,11 @@ namespace Mantra
 			i = last + 1;
 			SkipWhitespace(text);
 
-			Rule rule = rules.Get(name.name);
+			Rule rule = module.Get(name.name);
 			if (rule == null)
 			{
 				rule = new Rule(name.name);
-				rules.Register(rule);
+				module.Register(rule);
 			}
 			rule.patternHeads.Add(patternHead);
 			rule.bodyHeads.Add(bodyHead);

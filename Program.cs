@@ -18,8 +18,10 @@ namespace Mantra
 		{
 			ReceiverPool pool = new ReceiverPool();
 			Fiber repl = new Fiber("repl");
-			RuleSet rules = new RuleSet(pool);
-			new Parser().ParseFile(File.ReadAllText("prelude.tra"), rules);
+			RuleSet rules = new RuleSet();
+			Module.InitializeCore(pool);
+			rules.Register(Module.Core);
+			new Parser().ParseFile("prelude.tra", rules);
 
 			while (true)
 			{
@@ -52,7 +54,7 @@ namespace Mantra
 			{
 				try
 				{
-					new Parser().ParseFile(File.ReadAllText(p[1]), rules);
+					new Parser().ParseFile(p[1], rules);
 				}
 				catch
 				{
