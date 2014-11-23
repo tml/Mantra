@@ -12,6 +12,25 @@ namespace Mantra
 
 		public void ParseFile(string text, RuleSet rules)
 		{
+			SkipWhitespace(text);
+			string version = ParseWord(text);
+			if (version != "version")
+			{
+				Console.WriteLine("This file doesn't start with version. It should start with \"version 0\" to support this compiler.");
+				return;
+			}
+			string number = ParseWord(text);
+			int versionValue;
+			if (!int.TryParse(number, out versionValue))
+			{
+				Console.WriteLine("The version number at the start of the file isn't formatted as a number.");
+				return;
+			}
+			if (versionValue != 0)
+			{
+				Console.WriteLine("The version of this file is " + versionValue + ", but this compiler only supports major version zero.");
+				return;
+			}
 			while (i < text.Length)
 			{
 				if (text[i] == '#')
@@ -114,6 +133,17 @@ namespace Mantra
 
 		private Term ParseLiteral(string text)
 		{
+			string word = ParseWord(text);
+			double number;
+			if (double.TryParse(word.ToString(), out number))
+			{
+				return new NumberTerm(number, null);
+			}
+			return new LiteralTerm(word.ToString(), null);
+		}
+
+		private string ParseWord(string text)
+		{
 			StringBuilder builder = new StringBuilder();
 			while (i < text.Length && !char.IsWhiteSpace(text[i]) && text[i] != '(' && text[i] != ')')
 			{
@@ -121,12 +151,7 @@ namespace Mantra
 				i += 1;
 			}
 			SkipWhitespace(text);
-			double number;
-			if (double.TryParse(builder.ToString(), out number))
-			{
-				return new NumberTerm(number, null);
-			}
-			return new LiteralTerm(builder.ToString(), null);
+			return builder.ToString();
 		}
 
 		private Term ParseList(string text)
