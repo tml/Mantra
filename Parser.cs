@@ -33,7 +33,7 @@ namespace Mantra
 				Console.WriteLine("The version of this file is " + versionValue + ", but this compiler only supports major version zero (" + path + ").");
 				return;
 			}
-			Module module = new Module(Path.GetDirectoryName(path));
+			Module module = new Module(Path.GetFileNameWithoutExtension(path));
 			while (i < text.Length)
 			{
 				if (text[i] == '#')
