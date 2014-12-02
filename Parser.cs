@@ -125,7 +125,7 @@ namespace Mantra
 
 		private Term ParseTerm(string text)
 		{
-			if (text[i] == '(')
+			if (text[i] == '[')
 			{
 				return ParseList(text);
 			}
@@ -149,7 +149,7 @@ namespace Mantra
 		private string ParseWord(string text)
 		{
 			StringBuilder builder = new StringBuilder();
-			while (i < text.Length && !char.IsWhiteSpace(text[i]) && text[i] != '(' && text[i] != ')')
+			while (i < text.Length && !char.IsWhiteSpace(text[i]) && text[i] != '[' && text[i] != ']')
 			{
 				builder.Append(text[i]);
 				i += 1;
@@ -162,7 +162,7 @@ namespace Mantra
 		{
 			i += 1;
 			SkipWhitespace(text);
-			if (i >= text.Length || text[i] == ')')
+			if (i >= text.Length || text[i] == ']')
 			{
 				i += 1;
 				SkipWhitespace(text);
@@ -170,7 +170,7 @@ namespace Mantra
 			}
 			Term head = ParseTerm(text);
 			Term current = head;
-			while (i < text.Length && text[i] != ')')
+			while (i < text.Length && text[i] != ']')
 			{
 				current.next = ParseTerm(text);
 				current = current.next;

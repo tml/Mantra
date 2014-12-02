@@ -70,11 +70,11 @@ namespace Mantra
 		{
 			if (next == null)
 			{
-				return "(" + head + ")";
+				return "[" + head + "]";
 			}
 			else
 			{
-				return "(" + head + ") " + next;
+				return "[" + head + "] " + next;
 			}
 		}
 
