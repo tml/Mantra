@@ -46,6 +46,8 @@ namespace Mantra
 			return copy;
 		}
 
+		public abstract string StringSingle();
+
 		public int Count
 		{
 			get
@@ -68,14 +70,7 @@ namespace Mantra
 
 		public override string ToString()
 		{
-			if (next == null)
-			{
-				return "[" + head + "]";
-			}
-			else
-			{
-				return "[" + head + "] " + next;
-			}
+			return StringSingle() + " " + next;
 		}
 
 		public override bool Equals(object obj)
@@ -92,6 +87,20 @@ namespace Mantra
 				return new ListTerm(null, null);
 			}
 			return new ListTerm(head.CopyChain(), null);
+		}
+
+		public override string StringSingle()
+		{
+			string str = "[";
+			for (Term t = head; t != null; t = t.next)
+			{
+				str += t.StringSingle();
+				if (t.next != null)
+				{
+					str += " ";
+				}
+			}
+			return str + "]";
 		}
 	}
 
@@ -128,6 +137,11 @@ namespace Mantra
 		{
 			return new NumberTerm(number, null);
 		}
+
+		public override string StringSingle()
+		{
+			return number.ToString();
+		}
 	}
 
 	public class LiteralTerm : Term
@@ -144,27 +158,13 @@ namespace Mantra
 
 		public override string ToString()
 		{
-			if (Program.literalDictionary.ContainsKey(name))
+			if (next == null)
 			{
-				if (next == null)
-				{
-					return Program.literalDictionary[name];
-				}
-				else
-				{
-					return Program.literalDictionary[name] + " " + next;
-				}
+				return StringSingle();
 			}
 			else
 			{
-				if (next == null)
-				{
-					return "<noname>";
-				}
-				else
-				{
-					return "<noname> " + next;
-				}
+				return StringSingle() + " " + next;
 			}
 		}
 
@@ -178,6 +178,18 @@ namespace Mantra
 		public override Term CopySingle()
 		{
 			return new LiteralTerm(Program.literalDictionary[name], null);
+		}
+
+		public override string StringSingle()
+		{
+			if (Program.literalDictionary.ContainsKey(name))
+			{
+				return Program.literalDictionary[name];
+			}
+			else
+			{
+				return "<noname>";
+			}
 		}
 	}
 }
