@@ -30,7 +30,7 @@ namespace Mantra
 			return rule;
 		}
 
-		public static void InitializeCore(ReceiverPool pool)
+		public static void InitializeCore(ReceiverPool pool, RuleSet rules)
 		{
 			Core = new Module("Core");
 			Core.Register(new Rule("+".GetHashCode(), 2, t =>
@@ -175,6 +175,14 @@ namespace Mantra
 			{
 				ListTerm name = t.CopySingle() as ListTerm;
 				return new ListTerm((pool.Receiver[(name.head as LiteralTerm).name] as Fiber).Head.CopyChain(), null);
+			}));
+
+			Core.Register(new Rule("do".GetHashCode(), 1, t =>
+			{
+				Fiber fiber = new Fiber("temp");
+				fiber.Head = (t as ListTerm).head.CopyChain();
+				fiber.Evaluate(rules, false);
+				return new ListTerm(fiber.Head, null);
 			}));
 		}
 	}

@@ -19,7 +19,7 @@ namespace Mantra
 			ReceiverPool pool = new ReceiverPool();
 			Fiber repl = new Fiber("repl");
 			RuleSet rules = new RuleSet();
-			Module.InitializeCore(pool);
+			Module.InitializeCore(pool, rules);
 			rules.Register(Module.Core);
 			new Parser().ParseFile("prelude.tra", rules);
 
