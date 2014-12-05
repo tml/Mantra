@@ -23,6 +23,8 @@ namespace Mantra
 			rules.Register(Module.Core);
 			new Parser().ParseFile("prelude.tra", rules);
 
+			IEnumerable<Term> lastResult = new Term[] { };
+
 			while (true)
 			{
 				Console.Write(":> ");
@@ -32,6 +34,15 @@ namespace Mantra
 					Command(input.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries), pool, rules);
 				}
 				repl.Terms = new Parser().ParseExpression(input);
+				for (int i = 0; i < repl.Terms.Count; ++i)
+				{
+					if (repl.Terms[i] is LiteralTerm && (repl.Terms[i] as LiteralTerm).name == "answer".GetHashCode())
+					{
+						repl.Terms.RemoveAt(i);
+						repl.Terms.InsertRange(i, lastResult.ToList());
+						i += lastResult.Count();
+					}
+				}
 				if (steps)
 				{
 					do
@@ -44,6 +55,7 @@ namespace Mantra
 					repl.Evaluate(rules, false);
 					Console.WriteLine(repl);
 				}
+				lastResult = repl.Terms;
 				Console.WriteLine();
 			}
 		}
