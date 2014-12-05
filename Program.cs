@@ -31,18 +31,18 @@ namespace Mantra
 				{
 					Command(input.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries), pool, rules);
 				}
-				repl.Head = new Parser().ParseExpression(input);
+				repl.Terms = new Parser().ParseExpression(input);
 				if (steps)
 				{
 					do
 					{
-						Console.WriteLine(repl.Head);
+						Console.WriteLine(repl);
 					} while (repl.PerformStep(rules) == Fiber.Status.Active);
 				}
 				else
 				{
 					repl.Evaluate(rules, false);
-					Console.WriteLine(repl.Head);
+					Console.WriteLine(repl);
 				}
 				Console.WriteLine();
 			}

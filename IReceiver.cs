@@ -9,6 +9,6 @@ namespace Mantra
 	public interface IReceiver
 	{
 		int Name { get; }
-		void Receive(Term message);
+		void Receive(IEnumerable<Term> message);
 	}
 }

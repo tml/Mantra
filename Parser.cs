@@ -52,32 +52,22 @@ namespace Mantra
 
 		public void ParseDeclaration(string text, Module module)
 		{
-			Term term = ParseLiteral(text);
-			if (term is NumberTerm)
+			Term nameTerm = ParseLiteral(text);
+			if (nameTerm is NumberTerm)
 			{
 				throw new Exception("Numbers can't be rule specifiers.");
 			}
-			LiteralTerm name = term as LiteralTerm;
+			LiteralTerm name = nameTerm as LiteralTerm;
 
-			Term patternHead = ParseTerm(text);
-			Term current = patternHead;
-			if (patternHead is LiteralTerm && (patternHead as LiteralTerm).name == "=>".GetHashCode())
+			var pattern = new List<Term>();
+			while (i < text.Length)
 			{
-				patternHead = null;
-				current = null;
-			}
-			else
-			{
-				while (i < text.Length)
+				Term t = ParseTerm(text);
+				if (t is LiteralTerm && (t as LiteralTerm).name == "=>".GetHashCode())
 				{
-					current.next = ParseTerm(text);
-					if (current.next is LiteralTerm && (current.next as LiteralTerm).name == "=>".GetHashCode())
-					{
-						current.next = null;
-						break;
-					}
-					current = current.next;
+					break;
 				}
+				pattern.Add(t);
 			}
 
 			int last = text.IndexOf(';', i);
@@ -86,7 +76,7 @@ namespace Mantra
 				Console.WriteLine("Missing semicolon for rule '" + Program.literalDictionary[name.name] + "'.");
 				return;
 			}
-			Term bodyHead = new Parser().ParseExpression(text.Substring(i, last - i));
+			IEnumerable<Term> body = new Parser().ParseExpression(text.Substring(i, last - i));
 			i = last + 1;
 			SkipWhitespace(text);
 
@@ -96,23 +86,21 @@ namespace Mantra
 				rule = new Rule(name.name);
 				module.Register(rule);
 			}
-			rule.patternHeads.Add(patternHead);
-			rule.bodyHeads.Add(bodyHead);
+			rule.patternHeads.Add(pattern);
+			rule.bodyHeads.Add(body);
 		}
 
-		public Term ParseExpression(string text)
+		public List<Term> ParseExpression(string text)
 		{
 			SkipWhitespace(text);
 			if (i >= text.Length) return null;
 
-			Term head = ParseTerm(text);
-			Term current = head;
+			var list = new List<Term>();
 			while (i < text.Length)
 			{
-				current.next = ParseTerm(text);
-				current = current.next;
+				list.Add(ParseTerm(text));
 			}
-			return head;
+			return list;
 		}
 
 		private void SkipWhitespace(string text)
@@ -141,9 +129,9 @@ namespace Mantra
 			double number;
 			if (double.TryParse(word.ToString(), out number))
 			{
-				return new NumberTerm(number, null);
+				return new NumberTerm(number);
 			}
-			return new LiteralTerm(word.ToString(), null);
+			return new LiteralTerm(word.ToString());
 		}
 
 		private string ParseWord(string text)
@@ -166,18 +154,16 @@ namespace Mantra
 			{
 				i += 1;
 				SkipWhitespace(text);
-				return new ListTerm(null, null);
+				return new ListTerm(new Term[] { });
 			}
-			Term head = ParseTerm(text);
-			Term current = head;
+			var list = new List<Term>();
 			while (i < text.Length && text[i] != ']')
 			{
-				current.next = ParseTerm(text);
-				current = current.next;
+				list.Add(ParseTerm(text));
 			}
 			i += 1;
 			SkipWhitespace(text);
-			return new ListTerm(head, null);
+			return new ListTerm(list);
 		}
 	}
 }

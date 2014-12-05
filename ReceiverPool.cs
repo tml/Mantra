@@ -16,7 +16,7 @@ namespace Mantra
 			receivers.Add(receiver.Name, receiver);
 		}
 
-		public void Send(int name, Term term)
+		public void Send(int name, IEnumerable<Term> term)
 		{
 			receivers[name].Receive(term);
 		}

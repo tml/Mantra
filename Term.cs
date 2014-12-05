@@ -8,99 +8,55 @@ namespace Mantra
 {
 	public abstract class Term
 	{
-		public Term next;
-
-		public Term(Term next)
-		{
-			this.next = next;
-		}
-
 		public ListTerm Quote()
 		{
-			return new ListTerm(this, next);
+			var list = new List<Term>();
+			list.Add(this);
+			return new ListTerm(list); ;
 		}
 
-		public bool ChainEquals(Term o)
-		{
-			if ((next == null && o.next != null) ||
-				(next != null && o.next == null))
-			{
-				return false;
-			}
-			if (next == null && o.next == null)
-			{
-				return Equals(o);
-			}
-			return Equals(o) && next.ChainEquals(o.next);
-		}
-
-		public abstract Term CopySingle();
-		public Term CopyChain()
-		{
-			Term copy = CopySingle();
-			if (next == null)
-			{
-				return copy;
-			}
-			copy.next = next.CopyChain();
-			return copy;
-		}
-
-		public abstract string StringSingle();
-
-		public int Count
-		{
-			get
-			{
-				if (next == null) return 1;
-				return 1 + next.Count;
-			}
-		}
+		public abstract Term Copy();
 	}
 
 	public class ListTerm : Term
 	{
-		public Term head;
+		public List<Term> terms;
 
-		public ListTerm(Term head, Term next)
-			: base(next)
+		public ListTerm(List<Term> terms)
 		{
-			this.head = head;
+			this.terms = terms;
+		}
+
+		public ListTerm(IEnumerable<Term> terms)
+		{
+			this.terms = terms.ToList();
 		}
 
 		public override string ToString()
 		{
-			return StringSingle() + " " + next;
+			return "[" + string.Join(" ", terms) + "]";
 		}
 
 		public override bool Equals(object obj)
 		{
 			ListTerm o = obj as ListTerm;
 			if (o == null) return false;
-			return head.ChainEquals(o.head);
+			if (o.terms.Count != terms.Count) return false;
+			for (int i = 0; i < terms.Count; ++i)
+			{
+				if (terms[i] != o.terms[i]) return false;
+			}
+			return true;
 		}
 
-		public override Term CopySingle()
+		public override int GetHashCode()
 		{
-			if (head == null)
-			{
-				return new ListTerm(null, null);
-			}
-			return new ListTerm(head.CopyChain(), null);
+			return terms.GetHashCode();
 		}
 
-		public override string StringSingle()
+		public override Term Copy()
 		{
-			string str = "[";
-			for (Term t = head; t != null; t = t.next)
-			{
-				str += t.StringSingle();
-				if (t.next != null)
-				{
-					str += " ";
-				}
-			}
-			return str + "]";
+			return new ListTerm(terms.ToList());
 		}
 	}
 
@@ -108,22 +64,14 @@ namespace Mantra
 	{
 		public double number;
 
-		public NumberTerm(double number, Term next)
-			: base(next)
+		public NumberTerm(double number)
 		{
 			this.number = number;
 		}
 
 		public override string ToString()
 		{
-			if (next == null)
-			{
-				return number.ToString();
-			}
-			else
-			{
-				return number + " " + next;
-			}
+			return number.ToString();
 		}
 
 		public override bool Equals(object obj)
@@ -133,14 +81,14 @@ namespace Mantra
 			return o.number == number;
 		}
 
-		public override Term CopySingle()
+		public override int GetHashCode()
 		{
-			return new NumberTerm(number, null);
+			return number.GetHashCode();
 		}
 
-		public override string StringSingle()
+		public override Term Copy()
 		{
-			return number.ToString();
+			return new NumberTerm(number);
 		}
 	}
 
@@ -148,23 +96,27 @@ namespace Mantra
 	{
 		public int name;
 
-		public LiteralTerm(string name, Term next)
-			: base(next)
+		public LiteralTerm(string name)
 		{
 			this.name = name.GetHashCode();
 			if (!Program.literalDictionary.ContainsKey(name.GetHashCode()))
 				Program.literalDictionary.Add(name.GetHashCode(), name);
 		}
 
+		private LiteralTerm(int name)
+		{
+			this.name = name;
+		}
+
 		public override string ToString()
 		{
-			if (next == null)
+			if (Program.literalDictionary.ContainsKey(name))
 			{
-				return StringSingle();
+				return Program.literalDictionary[name];
 			}
 			else
 			{
-				return StringSingle() + " " + next;
+				return "<noname>";
 			}
 		}
 
@@ -175,21 +127,14 @@ namespace Mantra
 			return o.name == name;
 		}
 
-		public override Term CopySingle()
+		public override int GetHashCode()
 		{
-			return new LiteralTerm(Program.literalDictionary[name], null);
+			return name.GetHashCode();
 		}
 
-		public override string StringSingle()
+		public override Term Copy()
 		{
-			if (Program.literalDictionary.ContainsKey(name))
-			{
-				return Program.literalDictionary[name];
-			}
-			else
-			{
-				return "<noname>";
-			}
+			return new LiteralTerm(name);
 		}
 	}
 }

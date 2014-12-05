@@ -35,135 +35,131 @@ namespace Mantra
 			Core = new Module("Core");
 			Core.Register(new Rule("+".GetHashCode(), 2, t =>
 			{
-				return new NumberTerm((t as NumberTerm).number + (t.next as NumberTerm).number, null);
+				var left = (t.First() as NumberTerm);
+				var right = (t.Skip(1).First() as NumberTerm);
+				return new[] { new NumberTerm(left.number + right.number) };
 			}));
 			Core.Register(new Rule("-".GetHashCode(), 2, t =>
 			{
-				return new NumberTerm((t as NumberTerm).number - (t.next as NumberTerm).number, null);
+				var left = (t.First() as NumberTerm);
+				var right = (t.Skip(1).First() as NumberTerm);
+				return new[] { new NumberTerm(left.number - right.number) };
 			}));
 			Core.Register(new Rule("*".GetHashCode(), 2, t =>
 			{
-				return new NumberTerm((t as NumberTerm).number * (t.next as NumberTerm).number, null);
+				var left = (t.First() as NumberTerm);
+				var right = (t.Skip(1).First() as NumberTerm);
+				return new[] { new NumberTerm(left.number * right.number) };
 			}));
 			Core.Register(new Rule("/".GetHashCode(), 2, t =>
 			{
-				return new NumberTerm((t as NumberTerm).number / (t.next as NumberTerm).number, null);
+				var left = (t.First() as NumberTerm);
+				var right = (t.Skip(1).First() as NumberTerm);
+				return new[] { new NumberTerm(left.number / right.number) };
 			}));
 			Core.Register(new Rule("=".GetHashCode(), 2, t =>
 			{
-				Term left = t;
-				Term right = t.next;
+				Term left = t.First();
+				Term right = t.Skip(1).First();
 				if (left.Equals(right))
 				{
-					return new LiteralTerm("true", null).Quote();
+					return new[] { new LiteralTerm("true").Quote() };
 				}
 				else
 				{
-					return new ListTerm(null, null);
+					return new[] { new ListTerm(new Term[] { }) };
 				}
 			}));
 			Core.Register(new Rule("!=".GetHashCode(), 2, t =>
 			{
-				Term left = t;
-				Term right = t.next;
+				Term left = t.First();
+				Term right = t.Skip(1).First();
 				if (left.Equals(right))
 				{
-					return new ListTerm(null, null);
+					return new[] { new ListTerm(new Term[] { }) };
 				}
 				else
 				{
-					return new LiteralTerm("true", null).Quote();
+					return new[] { new LiteralTerm("true").Quote() };
 				}
 			}));
 			Core.Register(new Rule(">".GetHashCode(), 2, t =>
 			{
-				NumberTerm left = t as NumberTerm;
-				NumberTerm right = t.next as NumberTerm;
+				var left = (t.First() as NumberTerm);
+				var right = (t.Skip(1).First() as NumberTerm);
 				if (left.number > right.number)
 				{
-					return new LiteralTerm("true", null).Quote();
+					return new[] { new LiteralTerm("true").Quote() };
 				}
 				else
 				{
-					return new ListTerm(null, null);
+					return new[] { new ListTerm(new Term[] { }) };
 				}
 			}));
 			Core.Register(new Rule("<".GetHashCode(), 2, t =>
 			{
-				NumberTerm left = t as NumberTerm;
-				NumberTerm right = t.next as NumberTerm;
+				var left = (t.First() as NumberTerm);
+				var right = (t.Skip(1).First() as NumberTerm);
 				if (left.number < right.number)
 				{
-					return new LiteralTerm("true", null).Quote();
+					return new[] { new LiteralTerm("true").Quote() };
 				}
 				else
 				{
-					return new ListTerm(null, null);
+					return new[] { new ListTerm(new Term[] { }) };
 				}
 			}));
 			Core.Register(new Rule(">=".GetHashCode(), 2, t =>
 			{
-				NumberTerm left = t as NumberTerm;
-				NumberTerm right = t.next as NumberTerm;
+				var left = (t.First() as NumberTerm);
+				var right = (t.Skip(1).First() as NumberTerm);
 				if (left.number >= right.number)
 				{
-					return new LiteralTerm("true", null).Quote();
+					return new[] { new LiteralTerm("true").Quote() };
 				}
 				else
 				{
-					return new ListTerm(null, null);
+					return new[] { new ListTerm(new Term[] { }) };
 				}
 			}));
 			Core.Register(new Rule("<=".GetHashCode(), 2, t =>
 			{
-				NumberTerm left = t as NumberTerm;
-				NumberTerm right = t.next as NumberTerm;
+				var left = (t.First() as NumberTerm);
+				var right = (t.Skip(1).First() as NumberTerm);
 				if (left.number <= right.number)
 				{
-					return new LiteralTerm("true", null).Quote();
+					return new[] { new LiteralTerm("true").Quote() };
 				}
 				else
 				{
-					return new ListTerm(null, null);
+					return new[] { new ListTerm(new Term[] { }) };
 				}
 			}));
 			Core.Register(new Rule("cat".GetHashCode(), 2, t =>
 			{
-				ListTerm left = t as ListTerm;
-				ListTerm right = t.next as ListTerm;
-				if (left.head == null)
+				ListTerm left = t.First() as ListTerm;
+				ListTerm right = t.Skip(1).First() as ListTerm;
+				if (left.terms.Count == 0)
 				{
-					return right.CopySingle();
+					return new[] { right };
 				}
-				else if (right.head == null)
+				else if (right.terms.Count == 0)
 				{
-					return left.CopySingle();
+					return new[] { left };
 				}
-				Term last = null;
-				for (Term it = left.head; it != null; it = it.next)
-				{
-					last = it;
-				}
-				last.next = right.head;
-				return new ListTerm(left.head, null);
+				left.terms.AddRange(right.terms);
+				return new[] { left };
 			}));
 			Core.Register(new Rule("unquote".GetHashCode(), 1, t =>
 			{
-				ListTerm list = t as ListTerm;
-				return list.head;
-			}));
-			Core.Register(new Rule("cons".GetHashCode(), 2, t =>
-			{
-				Term a = t.CopySingle();
-				ListTerm list = t.next as ListTerm;
-				a.next = list.head;
-				return new ListTerm(a, null);
+				ListTerm list = (t.First()) as ListTerm;
+				return list.terms;
 			}));
 			Core.Register(new Rule("pass".GetHashCode(), 2, t =>
 			{
-				ListTerm name = t.CopySingle() as ListTerm;
-				ListTerm message = t.next.CopySingle() as ListTerm;
-				pool.Send((name.head as LiteralTerm).name, message.head);
+				ListTerm name = t.First() as ListTerm;
+				ListTerm message = t.Skip(1).First() as ListTerm;
+				pool.Send((name.terms.First() as LiteralTerm).name, message.terms);
 				return null;
 			}));
 			Core.Register(new Rule("trace".GetHashCode(), 1, t =>
@@ -173,16 +169,16 @@ namespace Mantra
 			}));
 			Core.Register(new Rule("showFiber".GetHashCode(), 1, t =>
 			{
-				ListTerm name = t.CopySingle() as ListTerm;
-				return new ListTerm((pool.Receiver[(name.head as LiteralTerm).name] as Fiber).Head.CopyChain(), null);
+				ListTerm name = t.First() as ListTerm;
+				return new[] { new ListTerm((pool.Receiver[(name.terms.First() as LiteralTerm).name] as Fiber).Terms.ToList()) };
 			}));
 
 			Core.Register(new Rule("do".GetHashCode(), 1, t =>
 			{
 				Fiber fiber = new Fiber("temp");
-				fiber.Head = (t as ListTerm).head.CopyChain();
+				fiber.Terms = (t.First() as ListTerm).terms.ToList();
 				fiber.Evaluate(rules, false);
-				return new ListTerm(fiber.Head, null);
+				return new[] { new ListTerm(fiber.Terms) };
 			}));
 		}
 	}
