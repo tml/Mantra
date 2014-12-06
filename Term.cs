@@ -6,19 +6,22 @@ using System.Threading.Tasks;
 
 namespace Mantra
 {
-	public abstract class Term
+	public interface Term
 	{
-		public ListTerm Quote()
-		{
-			var list = new List<Term>();
-			list.Add(this);
-			return new ListTerm(list); ;
-		}
-
-		public abstract Term Copy();
+		Term Copy();
 	}
 
-	public class ListTerm : Term
+	public static class TermExtensions
+	{
+		public static ListTerm Quote(this Term self)
+		{
+			var list = new List<Term>();
+			list.Add(self);
+			return new ListTerm(list); ;
+		}
+	}
+
+	public struct ListTerm : Term
 	{
 		public List<Term> terms;
 
@@ -39,12 +42,12 @@ namespace Mantra
 
 		public override bool Equals(object obj)
 		{
-			ListTerm o = obj as ListTerm;
-			if (o == null) return false;
+			if (!(obj is ListTerm)) return false;
+			ListTerm o = (ListTerm)obj;
 			if (o.terms.Count != terms.Count) return false;
 			for (int i = 0; i < terms.Count; ++i)
 			{
-				if (terms[i] != o.terms[i]) return false;
+				if (!terms[i].Equals(o.terms[i])) return false;
 			}
 			return true;
 		}
@@ -54,13 +57,13 @@ namespace Mantra
 			return terms.GetHashCode();
 		}
 
-		public override Term Copy()
+		public Term Copy()
 		{
 			return new ListTerm(terms.ToList());
 		}
 	}
 
-	public class NumberTerm : Term
+	public struct NumberTerm : Term
 	{
 		public double number;
 
@@ -76,8 +79,8 @@ namespace Mantra
 
 		public override bool Equals(object obj)
 		{
-			NumberTerm o = obj as NumberTerm;
-			if (o == null) return false;
+			if (!(obj is NumberTerm)) return false;
+			NumberTerm o = (NumberTerm)obj;
 			return o.number == number;
 		}
 
@@ -86,13 +89,13 @@ namespace Mantra
 			return number.GetHashCode();
 		}
 
-		public override Term Copy()
+		public Term Copy()
 		{
 			return new NumberTerm(number);
 		}
 	}
 
-	public class LiteralTerm : Term
+	public struct LiteralTerm : Term
 	{
 		public int name;
 
@@ -122,8 +125,8 @@ namespace Mantra
 
 		public override bool Equals(object obj)
 		{
-			LiteralTerm o = obj as LiteralTerm;
-			if (o == null) return false;
+			if (!(obj is LiteralTerm)) return false;
+			LiteralTerm o = (LiteralTerm)obj;
 			return o.name == name;
 		}
 
@@ -132,7 +135,7 @@ namespace Mantra
 			return name.GetHashCode();
 		}
 
-		public override Term Copy()
+		public Term Copy()
 		{
 			return new LiteralTerm(name);
 		}

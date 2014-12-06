@@ -78,7 +78,7 @@ namespace Mantra
 			{
 				return Status.Blocking;
 			}
-			LiteralTerm primary = Terms[primaryIndex] as LiteralTerm;
+			LiteralTerm primary = (LiteralTerm)Terms[primaryIndex];
 
 			Rule rule = rules.Get(primary.name);
 			if (rule == null)
@@ -161,7 +161,7 @@ namespace Mantra
 				if (term is LiteralTerm)
 				{
 					Term replaceWith;
-					matched.TryGetValue((term as LiteralTerm).name, out replaceWith);
+					matched.TryGetValue(((LiteralTerm)term).name, out replaceWith);
 					if (replaceWith != null)
 					{
 						yield return replaceWith.Copy();
@@ -173,7 +173,7 @@ namespace Mantra
 				}
 				else if (term is ListTerm)
 				{
-					yield return new ListTerm(Rewrite((term as ListTerm).terms, matched));
+					yield return new ListTerm(Rewrite(((ListTerm)term).terms, matched));
 				}
 				else
 				{
@@ -192,29 +192,29 @@ namespace Mantra
 				var left = patternIt.Current;
 				var right = argumentsIt.Current;
 				if (left is LiteralTerm &&
-					(left as LiteralTerm).name != "_".GetHashCode())
+					((LiteralTerm)left).name != "_".GetHashCode())
 				{
-					toMatch.Add((left as LiteralTerm).name, right);
+					toMatch.Add(((LiteralTerm)left).name, right);
 				}
 				else if (left is ListTerm)
 				{
 					if (!(right is ListTerm)) return false;
 
-					var list = left as ListTerm;
+					var list = (ListTerm)left;
 					if (list.terms.Count >= 3 &&
 						list.terms[list.terms.Count - 2] is LiteralTerm &&
-						(list.terms[list.terms.Count - 2] as LiteralTerm).name == "..".GetHashCode())
+						((LiteralTerm)list.terms[list.terms.Count - 2]).name == "..".GetHashCode())
 					{
 						int i = 0;
-						if (!Match(toMatch, list.terms.Take(list.terms.Count - 2), (right as ListTerm).terms, ref i))
+						if (!Match(toMatch, list.terms.Take(list.terms.Count - 2), ((ListTerm)right).terms, ref i))
 						{
 							return false;
 						}
-						toMatch.Add((list.terms[list.terms.Count - 1] as LiteralTerm).name,
-							new ListTerm((right as ListTerm).terms.Skip(list.terms.Count - 2)));
+						toMatch.Add(((LiteralTerm)list.terms[list.terms.Count - 1]).name,
+							new ListTerm(((ListTerm)right).terms.Skip(list.terms.Count - 2)));
 					}
-					else if ((left as ListTerm).terms.Count != (right as ListTerm).terms.Count ||
-						!Match(toMatch, (left as ListTerm).terms, (right as ListTerm).terms, ref numConsumed))
+					else if (((ListTerm)left).terms.Count != ((ListTerm)right).terms.Count ||
+						!Match(toMatch, ((ListTerm)left).terms, ((ListTerm)right).terms, ref numConsumed))
 					{
 						return false;
 					}
@@ -222,7 +222,7 @@ namespace Mantra
 				else if (left is NumberTerm)
 				{
 					if (!(right is NumberTerm)) return false;
-					if ((left as NumberTerm).number != (right as NumberTerm).number) return false;
+					if (((NumberTerm)left).number != ((NumberTerm)right).number) return false;
 				}
 				numConsumed += 1;
 			}

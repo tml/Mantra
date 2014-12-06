@@ -57,13 +57,13 @@ namespace Mantra
 			{
 				throw new Exception("Numbers can't be rule specifiers.");
 			}
-			LiteralTerm name = nameTerm as LiteralTerm;
+			LiteralTerm name = (LiteralTerm)nameTerm;
 
 			var pattern = new List<Term>();
 			while (i < text.Length)
 			{
 				Term t = ParseTerm(text);
-				if (t is LiteralTerm && (t as LiteralTerm).name == "=>".GetHashCode())
+				if (t is LiteralTerm && ((LiteralTerm)t).name == "=>".GetHashCode())
 				{
 					break;
 				}

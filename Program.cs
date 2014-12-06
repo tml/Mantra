@@ -36,7 +36,7 @@ namespace Mantra
 				repl.Terms = new Parser().ParseExpression(input);
 				for (int i = 0; i < repl.Terms.Count; ++i)
 				{
-					if (repl.Terms[i] is LiteralTerm && (repl.Terms[i] as LiteralTerm).name == "answer".GetHashCode())
+					if (repl.Terms[i] is LiteralTerm && ((LiteralTerm)repl.Terms[i]).name == "answer".GetHashCode())
 					{
 						repl.Terms.RemoveAt(i);
 						repl.Terms.InsertRange(i, lastResult.ToList());
