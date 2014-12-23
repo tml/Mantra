@@ -9,12 +9,12 @@ namespace Mantra
 	public class Rule
 	{
 		public readonly int name;
-		public readonly Func<IEnumerable<Term>, IEnumerable<Term>> hardCoded;
+		public readonly Func<List<Term>, IEnumerable<Term>> hardCoded;
 		public readonly List<IEnumerable<Term>> bodyHeads;
 		public readonly List<IEnumerable<Term>> patternHeads;
 		public readonly int nArgs;
 
-		public Rule(int name, int nArgs, Func<IEnumerable<Term>, IEnumerable<Term>> hardCoded)
+		public Rule(int name, int nArgs, Func<List<Term>, IEnumerable<Term>> hardCoded)
 		{
 			this.name = name;
 			this.hardCoded = hardCoded;

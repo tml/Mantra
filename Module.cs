@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.FSharp.Collections;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -139,16 +140,13 @@ namespace Mantra
 			{
 				ListTerm left = (ListTerm)t.First();
 				ListTerm right = (ListTerm)t.Skip(1).First();
-				if (left.terms.Count == 0)
-				{
-					return new Term[] { right };
-				}
-				else if (right.terms.Count == 0)
-				{
-					return new Term[] { left };
-				}
-				left.terms.AddRange(right.terms);
-				return new Term[] { left };
+				return new Term[] { new ListTerm(ListModule.Concat(new[] { left.terms, right.terms })) };
+			}));
+			Core.Register(new Rule("cons".GetHashCode(), 2, t =>
+			{
+				Term left = t.First();
+				ListTerm right = (ListTerm)t.Skip(1).First();
+				return new Term[] { new ListTerm(new FSharpList<Term>(left, right.terms)) };
 			}));
 			Core.Register(new Rule("unquote".GetHashCode(), 1, t =>
 			{

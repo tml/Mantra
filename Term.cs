@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.FSharp.Collections;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,16 +24,21 @@ namespace Mantra
 
 	public struct ListTerm : Term
 	{
-		public List<Term> terms;
+		public FSharpList<Term> terms;
 
-		public ListTerm(List<Term> terms)
+		public ListTerm(FSharpList<Term> terms)
 		{
 			this.terms = terms;
 		}
 
+		public ListTerm(Term[] terms)
+		{
+			this.terms = ListModule.OfArray(terms);
+		}
+
 		public ListTerm(IEnumerable<Term> terms)
 		{
-			this.terms = terms.ToList();
+			this.terms = ListModule.OfSeq(terms);
 		}
 
 		public override string ToString()
@@ -44,8 +50,8 @@ namespace Mantra
 		{
 			if (!(obj is ListTerm)) return false;
 			ListTerm o = (ListTerm)obj;
-			if (o.terms.Count != terms.Count) return false;
-			for (int i = 0; i < terms.Count; ++i)
+			if (ListModule.Length(o.terms) != ListModule.Length(terms)) return false;
+			for (int i = 0; i < ListModule.Length(terms); ++i)
 			{
 				if (!terms[i].Equals(o.terms[i])) return false;
 			}
@@ -59,7 +65,7 @@ namespace Mantra
 
 		public Term Copy()
 		{
-			return new ListTerm(terms.ToList());
+			return new ListTerm(terms);
 		}
 	}
 

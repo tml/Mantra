@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.FSharp.Collections;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -59,14 +60,21 @@ namespace Mantra
 			while (PerformStep(rules) == Status.Active) ;
 			if (cleanUp)
 			{
-				int index = Terms.FindIndex(t => t is LiteralTerm);
-				if (index == -1)
+				int last = -1;
+				for (int i = 0; i < Terms.Count; ++i)
+				{
+					if (!(Terms[i] is LiteralTerm))
+					{
+						last = i;
+					}
+				}
+				if (last == -1)
 				{
 					Terms.Clear();
 				}
 				else
 				{
-					Terms.RemoveRange(0, index);
+					Terms.RemoveRange(0, last);
 				}
 			}
 		}
@@ -96,12 +104,14 @@ namespace Mantra
 				{
 					return Status.Blocking;
 				}
-				result = rule.hardCoded(Terms.Skip(primaryIndex + 1).Take(numConsumed));
+				var a = Terms.Skip(primaryIndex + 1).Take(numConsumed).ToList();
+				result = rule.hardCoded(a);
 			}
 			else
 			{
 				Status error;
-				result = DoRule(rule, Terms.Skip(primaryIndex + 1), out error, ref numConsumed);
+				var a = Terms.Skip(primaryIndex + 1);
+				result = DoRule(rule, a, out error, ref numConsumed);
 				if (error == Status.Blocking)
 				{
 					return Status.Blocking;
@@ -125,20 +135,21 @@ namespace Mantra
 			return -1;
 		}
 
-		private IEnumerable<Term> DoRule(Rule rule, IEnumerable<Term> arguments, out Status error, ref int numConsumed)
+		private List<Term> DoRule(Rule rule, IEnumerable<Term> arguments, out Status error, ref int numConsumed)
 		{
 			if (rule.patternHeads.Count == 0)
 			{
 				error = Status.Active;
 				return null;
 			}
+			int argsCount = arguments.Count();
 			foreach (var tuple in rule.patternHeads.Zip(rule.bodyHeads, (a, b) => Tuple.Create(a, b)))
 			{
 				var pattern = tuple.Item1;
 				var body = tuple.Item2;
 				Dictionary<int, Term> matches = new Dictionary<int, Term>();
 				numConsumed = 0;
-				if (!Match(matches, pattern, arguments, ref numConsumed))
+				if (!Match(matches, pattern, arguments, argsCount, ref numConsumed))
 				{
 					error = Status.Blocking;
 					continue;
@@ -154,8 +165,9 @@ namespace Mantra
 			return null;
 		}
 
-		private IEnumerable<Term> Rewrite(IEnumerable<Term> terms, Dictionary<int, Term> matched)
+		private List<Term> Rewrite(IEnumerable<Term> terms, Dictionary<int, Term> matched)
 		{
+			List<Term> rewritten = new List<Term>();
 			foreach (var term in terms)
 			{
 				if (term is LiteralTerm)
@@ -164,27 +176,28 @@ namespace Mantra
 					matched.TryGetValue(((LiteralTerm)term).name, out replaceWith);
 					if (replaceWith != null)
 					{
-						yield return replaceWith.Copy();
+						rewritten.Add(replaceWith.Copy());
 					}
 					else
 					{
-						yield return term;
+						rewritten.Add(term);
 					}
 				}
 				else if (term is ListTerm)
 				{
-					yield return new ListTerm(Rewrite(((ListTerm)term).terms, matched));
+					rewritten.Add(new ListTerm(Rewrite(((ListTerm)term).terms, matched)));
 				}
 				else
 				{
-					yield return term;
+					rewritten.Add(term);
 				}
 			}
+			return rewritten;
 		}
 
-		private bool Match(Dictionary<int, Term> toMatch, IEnumerable<Term> pattern, IEnumerable<Term> arguments, ref int numConsumed)
+		private bool Match(Dictionary<int, Term> toMatch, IEnumerable<Term> pattern, IEnumerable<Term> arguments, int numArgs, ref int numConsumed)
 		{
-			if (arguments.Count() < pattern.Count()) return false;
+			if (numArgs < pattern.Count()) return false;
 			var patternIt = pattern.GetEnumerator();
 			var argumentsIt = arguments.GetEnumerator();
 			while (patternIt.MoveNext() && argumentsIt.MoveNext())
@@ -201,20 +214,20 @@ namespace Mantra
 					if (!(right is ListTerm)) return false;
 
 					var list = (ListTerm)left;
-					if (list.terms.Count >= 3 &&
-						list.terms[list.terms.Count - 2] is LiteralTerm &&
-						((LiteralTerm)list.terms[list.terms.Count - 2]).name == "..".GetHashCode())
+					if (ListModule.Length(list.terms) >= 3 &&
+						list.terms[ListModule.Length(list.terms) - 2] is LiteralTerm &&
+						((LiteralTerm)list.terms[ListModule.Length(list.terms) - 2]).name == "..".GetHashCode())
 					{
 						int i = 0;
-						if (!Match(toMatch, list.terms.Take(list.terms.Count - 2), ((ListTerm)right).terms, ref i))
+						if (!Match(toMatch, list.terms.Take(ListModule.Length(list.terms) - 2), ((ListTerm)right).terms, ((ListTerm)right).terms.Count(), ref i))
 						{
 							return false;
 						}
-						toMatch.Add(((LiteralTerm)list.terms[list.terms.Count - 1]).name,
-							new ListTerm(((ListTerm)right).terms.Skip(list.terms.Count - 2)));
+						toMatch.Add(((LiteralTerm)list.terms[ListModule.Length(list.terms) - 1]).name,
+							new ListTerm(((ListTerm)right).terms.Skip(ListModule.Length(list.terms) - 2)));
 					}
-					else if (((ListTerm)left).terms.Count != ((ListTerm)right).terms.Count ||
-						!Match(toMatch, ((ListTerm)left).terms, ((ListTerm)right).terms, ref numConsumed))
+					else if (ListModule.Length(((ListTerm)left).terms) != ListModule.Length(((ListTerm)right).terms) ||
+						!Match(toMatch, ((ListTerm)left).terms, ((ListTerm)right).terms, ((ListTerm)right).terms.Count(), ref numConsumed))
 					{
 						return false;
 					}

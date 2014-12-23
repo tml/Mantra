@@ -93,7 +93,7 @@ namespace Mantra
 		public List<Term> ParseExpression(string text)
 		{
 			SkipWhitespace(text);
-			if (i >= text.Length) return null;
+			if (i >= text.Length) return new List<Term>();
 
 			var list = new List<Term>();
 			while (i < text.Length)

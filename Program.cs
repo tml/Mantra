@@ -53,7 +53,7 @@ namespace Mantra
 				else
 				{
 					repl.Evaluate(rules, false);
-					Console.WriteLine(repl);
+					//Console.WriteLine(repl);
 				}
 				lastResult = repl.Terms;
 				Console.WriteLine();
