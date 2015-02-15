@@ -13,6 +13,7 @@ namespace Mantra
 	{
 		public static Dictionary<int, string> literalDictionary = new Dictionary<int, string>();
 		private static bool steps = false;
+		private static bool slow;
 
 		static void Main(string[] args)
 		{
@@ -51,6 +52,7 @@ namespace Mantra
 					do
 					{
 						Console.WriteLine(repl);
+						if (slow) Thread.Sleep(100);
 					} while (repl.PerformStep(rules) == Fiber.Status.Active);
 				}
 				else
@@ -90,6 +92,10 @@ namespace Mantra
 			else if (p[0] == "#steps")
 			{
 				steps = !steps;
+			}
+			else if (p[0] == "#slow")
+			{
+				slow = !slow;
 			}
 		}
 
