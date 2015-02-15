@@ -99,6 +99,7 @@ namespace Mantra
 			if (backing.Count <= left + count)
 			{
 				backing.AddRange(enumerable);
+                count += enumerable.Count();
 				return this;
 			}
 			List<T> list = backing.GetRange(left, count);

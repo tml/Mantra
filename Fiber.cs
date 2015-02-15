@@ -105,7 +105,15 @@ namespace Mantra
 				{
 					return Status.Blocking;
 				}
-				result = rule.hardCoded(Terms.Slice(primaryIndex + 1, numConsumed));
+				try
+				{
+					result = rule.hardCoded(Terms.Slice(primaryIndex + 1, numConsumed));
+				}
+				catch
+				{
+					numConsumed = 0;
+					result = new Term[] { };
+				}
 			}
 			else
 			{
