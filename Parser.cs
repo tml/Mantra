@@ -76,7 +76,7 @@ namespace Mantra
 				Console.WriteLine("Missing semicolon for rule '" + Program.literalDictionary[name.name] + "'.");
 				return;
 			}
-			IEnumerable<Term> body = new Parser().ParseExpression(text.Substring(i, last - i));
+			List<Term> body = new Parser().ParseExpression(text.Substring(i, last - i));
 			i = last + 1;
 			SkipWhitespace(text);
 
@@ -95,7 +95,7 @@ namespace Mantra
 			SkipWhitespace(text);
 			if (i >= text.Length) return new List<Term>();
 
-			var list = new List<Term>();
+			var list = new List<Term>(64);
 			while (i < text.Length)
 			{
 				list.Add(ParseTerm(text));
@@ -125,13 +125,30 @@ namespace Mantra
 
 		private Term ParseLiteral(string text)
 		{
+			if (text[i] == '"')
+			{
+				return ParseString(text);
+			}
 			string word = ParseWord(text);
-			double number;
-			if (double.TryParse(word.ToString(), out number))
+			decimal number;
+			if (decimal.TryParse(word.ToString(), out number))
 			{
 				return new NumberTerm(number);
 			}
 			return new LiteralTerm(word.ToString());
+		}
+
+		private Term ParseString(string text)
+		{
+			i += 1;
+			List<Term> characters = new List<Term>();
+			while (i < text.Length && text[i] != '"')
+			{
+				characters.Add(new LiteralTerm(text[i].ToString()));
+				i += 1;
+			}
+			i += 1;
+			return new ListTerm(characters);
 		}
 
 		private string ParseWord(string text)

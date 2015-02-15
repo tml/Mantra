@@ -16,11 +16,12 @@ namespace Mantra
 
 		static void Main(string[] args)
 		{
-			ReceiverPool pool = new ReceiverPool();
-			Fiber repl = new Fiber("repl");
 			RuleSet rules = new RuleSet();
+			FiberPool pool = new FiberPool(rules);
+			Fiber repl = new Fiber("repl");
 			Module.InitializeCore(pool, rules);
 			rules.Register(Module.Core);
+
 			new Parser().ParseFile("prelude.tra", rules);
 
 			IEnumerable<Term> lastResult = new Term[] { };
@@ -28,12 +29,13 @@ namespace Mantra
 			while (true)
 			{
 				Console.Write(":> ");
-				string input = Console.ReadLine();
+				string input = Console.ReadLine();//"foldr [+] 0 iota 1000000";
 				if (input.Length > 0 && input[0] == '#')
 				{
 					Command(input.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries), pool, rules);
 				}
-				repl.Terms = new Parser().ParseExpression(input);
+				repl.Terms.Clear();
+				repl.Receive(new Parser().ParseExpression(input));
 				for (int i = 0; i < repl.Terms.Count; ++i)
 				{
 					if (repl.Terms[i] is LiteralTerm && ((LiteralTerm)repl.Terms[i]).name == "answer".GetHashCode())
@@ -45,6 +47,7 @@ namespace Mantra
 				}
 				if (steps)
 				{
+					repl.FlushReceivedMessages();
 					do
 					{
 						Console.WriteLine(repl);
@@ -53,14 +56,14 @@ namespace Mantra
 				else
 				{
 					repl.Evaluate(rules, false);
-					//Console.WriteLine(repl);
+					Console.WriteLine(repl);
 				}
 				lastResult = repl.Terms;
 				Console.WriteLine();
 			}
 		}
 
-		private static void Command(string[] p, ReceiverPool pool, RuleSet rules)
+		private static void Command(string[] p, FiberPool pool, RuleSet rules)
 		{
 			if (p[0] == "#load")
 			{
@@ -90,7 +93,7 @@ namespace Mantra
 			}
 		}
 
-		static void LoadExtension(string path, ReceiverPool pool, RuleSet rules)
+		static void LoadExtension(string path, FiberPool pool, RuleSet rules)
 		{
 			Thread thread = new Thread(() =>
 			{

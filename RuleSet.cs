@@ -8,8 +8,7 @@ namespace Mantra
 {
 	public class RuleSet
 	{
-		private Dictionary<string, Module> modules = new Dictionary<string, Module>();
-		private Dictionary<string, bool> loaded = new Dictionary<string, bool>();
+		private SortedDictionary<string, Module> modules = new SortedDictionary<string, Module>();
 
 		private Dictionary<int, Rule> cache = new Dictionary<int, Rule>();
 
@@ -19,16 +18,13 @@ namespace Mantra
 			{
 				Console.WriteLine("Reloading module " + module.Name);
 				modules.Remove(module.Name);
-				this.loaded.Remove(module.Name);
 			}
 			modules.Add(module.Name, module);
-			this.loaded.Add(module.Name, loaded);
 			cache = new Dictionary<int, Rule>();
 		}
 
 		public void Load(string name)
 		{
-			loaded[name] = true;
 			cache = new Dictionary<int, Rule>();
 		}
 
@@ -37,7 +33,7 @@ namespace Mantra
 			Rule rule;
 			cache.TryGetValue(name, out rule);
 			if (rule != null) return rule;
-			foreach (var module in modules.Values.Where(m => loaded[m.Name]))
+			foreach (var module in modules.Values)
 			{
 				rule = module.Get(name);
 				if (rule != null)
@@ -46,7 +42,7 @@ namespace Mantra
 					return rule;
 				}
 			}
-			cache.Add(name, null);
+			cache[name] = null;
 			return null;
 		}
 	}

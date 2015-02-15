@@ -1,6 +1,7 @@
 ﻿using Microsoft.FSharp.Collections;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,36 +23,36 @@ namespace Mantra
 		}
 	}
 
-	public struct ListTerm : Term
+	public class ListTerm : Term
 	{
-		public FSharpList<Term> terms;
+		public Slice<Term> terms;
 
-		public ListTerm(FSharpList<Term> terms)
+		public ListTerm(Slice<Term> terms)
 		{
 			this.terms = terms;
 		}
 
-		public ListTerm(Term[] terms)
+		public ListTerm(List<Term> terms)
 		{
-			this.terms = ListModule.OfArray(terms);
+			this.terms = terms.Slice();
 		}
 
 		public ListTerm(IEnumerable<Term> terms)
 		{
-			this.terms = ListModule.OfSeq(terms);
+			this.terms = terms.ToList().Slice();
 		}
 
 		public override string ToString()
 		{
-			return "[" + string.Join(" ", terms) + "]";
+			return "[" + string.Join(" ", terms.AsEnumerable()) + "]";
 		}
 
 		public override bool Equals(object obj)
 		{
 			if (!(obj is ListTerm)) return false;
 			ListTerm o = (ListTerm)obj;
-			if (ListModule.Length(o.terms) != ListModule.Length(terms)) return false;
-			for (int i = 0; i < ListModule.Length(terms); ++i)
+			if (o.terms.Count != terms.Count) return false;
+			for (int i = 0; i < terms.Count; ++i)
 			{
 				if (!terms[i].Equals(o.terms[i])) return false;
 			}
@@ -67,13 +68,18 @@ namespace Mantra
 		{
 			return new ListTerm(terms);
 		}
+
+		public LiteralTerm AsString()
+		{
+			return new LiteralTerm(new string(terms.OfType<LiteralTerm>().SelectMany(t => Program.literalDictionary[t.name]).ToArray()));
+		}
 	}
 
-	public struct NumberTerm : Term
+	public class NumberTerm : Term
 	{
-		public double number;
+		public decimal number;
 
-		public NumberTerm(double number)
+		public NumberTerm(decimal number)
 		{
 			this.number = number;
 		}
@@ -101,7 +107,7 @@ namespace Mantra
 		}
 	}
 
-	public struct LiteralTerm : Term
+	public class LiteralTerm : Term
 	{
 		public int name;
 
@@ -138,7 +144,7 @@ namespace Mantra
 
 		public override int GetHashCode()
 		{
-			return name.GetHashCode();
+			return name;
 		}
 
 		public Term Copy()
