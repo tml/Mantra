@@ -2,6 +2,4 @@
 *.layout
 bin/*
 obj/*
-Properties/*
-App.config
 *.user
