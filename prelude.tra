@@ -1,0 +1,79 @@
+version 0
+
+# Lists
+headTail [x .. xs] => x xs;
+
+# High level list functions
+
+eachAcc a f [] => a;
+eachAcc a f [x .. xs] => eachAcc cat a do cat f [x] f xs;
+
+each => eachAcc [];
+
+tail [] => [];
+tail [x .. xs] => xs;
+
+head [] => [];
+head [x .. xs] => x;
+
+sum => foldr [+] 0;
+product => foldr [*] 1;
+
+reduce f => foldr f headTail;
+
+foldr f d [] => d;
+foldr f d [x .. xs] => foldr f unquote f d x xs;
+
+elem e [] => [];
+elem e [x .. xs] => or = e x elem e xs;
+
+repeat 0 t => [];
+repeat n t => cat [t] repeat - n 1 t;
+
+iotaInner 0 ls => cat ls [0];
+iotaInner n ls => iotaInner - n 1 cat ls [n];
+
+iota 0 => [];
+iota n => reverse iotaInner - n 1 [];
+
+rangeInner ls low low => cat ls [low];
+rangeInner ls n low => rangeInner cat ls [n] - n 1 low; 
+
+range => reverse rangeInner [] order2;
+
+takeAcc a 0 _ => a;
+takeAcc a n [x .. xs] => takeAcc cat a [x] - n 1 xs;
+take => takeAcc [];
+
+skip _ [] => [];
+skip 0 ls => ls;
+skip n [x .. xs] => skip - n 1 xs;
+
+# Logic
+and [] b => [];
+and _ b => b;
+
+or [] [] => [];
+or a [] => a;
+or _ b => b;
+
+not [] => [true];
+not n => [];
+
+# Control/Compute
+forever f => forever f unquote f;
+
+over f x => x unquote f;
+
+swap y x => x y;
+drop x => ;
+copy x => x x;
+copy2 x y => x y x y;
+copy3 x y z => x y z x y z;
+
+order2 x y => choose > x y [x y] [y x];
+
+choose [] b c => unquote c;
+choose a b c => unquote b;
+
+quote x => [x];
