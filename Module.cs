@@ -202,6 +202,15 @@ namespace Mantra
 				fiber.Evaluate(rules, false);
 				return new Term[] { new ListTerm(fiber.Terms) };
 			}));
+
+			Core.Register(new Rule("reverse".GetHashCode(), 1, t =>
+			{
+				ListTerm list = (ListTerm)t[0];
+				List<Term> terms = list.terms.Extract();
+				terms.Reverse();
+				return new Term[] { new ListTerm(terms) };
+			}));
 		}
 	}
 }
+

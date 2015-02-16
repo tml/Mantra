@@ -99,12 +99,17 @@ namespace Mantra
 			if (backing.Count <= left + count)
 			{
 				backing.AddRange(enumerable);
-                count += enumerable.Count();
+				count += enumerable.Count();
 				return this;
 			}
 			List<T> list = backing.GetRange(left, count);
 			list.AddRange(enumerable);
 			return new Slice<T>(list, 0, list.Count);
+		}
+
+		public List<T> Extract()
+		{
+			return backing.GetRange(left, count);
 		}
 
 		private class Enumerator : IEnumerator<T>
