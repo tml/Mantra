@@ -23,7 +23,15 @@ namespace Mantra
 			Module.InitializeCore(pool, rules);
 			rules.Register(Module.Core);
 
-			new Parser().ParseFile("prelude.tra", rules);
+			try
+			{
+				new Parser().ParseFile("prelude.tra", rules);
+			}
+			catch
+			{
+				Console.WriteLine("Can't find prelude.tra in the working directory.");
+				return;
+			}
 
 			IEnumerable<Term> lastResult = new Term[] { };
 
