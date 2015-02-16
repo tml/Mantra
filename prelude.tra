@@ -6,7 +6,7 @@ headTail [x .. xs] => x xs;
 # High level list functions
 
 eachAcc a f [] => a;
-eachAcc a f [x .. xs] => eachAcc cat a do cat f [x] f xs;
+eachAcc a f [x .. xs] => eachAcc cat a do [unquote f x] f xs;
 
 each => eachAcc [];
 
