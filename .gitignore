@@ -4,4 +4,4 @@ bin/*
 obj/*
 Properties/*
 App.config
-Mantra.csproj
+*.user
