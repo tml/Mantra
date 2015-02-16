@@ -9,10 +9,6 @@ equivalent of the function stack is visible in Mantra. It's possible to execute 
 you be blocked by a debugger being unable to pinpoint exactly where a function call is coming
 from.
 </p>
-<p> <strong>Concurrent</strong>&#160; The evaluation model of Mantra allows for a trivial 
-message passing concurrency mechanism. Fibers are global, allowing for total visibility while 
-also allowing for effective concurrency.
-</p>
 
 <h2> Example </h2>
 <p>
